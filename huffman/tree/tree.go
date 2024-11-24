@@ -52,7 +52,3 @@ func (h HuffmanTree) Root() HuffmanNode {
 func (h HuffmanTree) Weight() int {
 	return h.root.Weight()
 }
-
-
-// func BuildTree() HuffmanTree {
-// }

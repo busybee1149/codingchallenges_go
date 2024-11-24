@@ -1,12 +1,17 @@
 package tree
 
+import (
+	"container/heap"
+	"fmt"
+	_ "strconv"
+)
+
 type PriorityQueue []*HuffmanTree
 
 func (pq PriorityQueue) Len() int { return len(pq) }
 
 func (pq PriorityQueue) Less(i, j int) bool {
-	// We want Pop to give us the highest, not lowest, priority so we use greater than here.
-	return pq[i].Weight() > pq[j].Weight()
+	return pq[i].Weight() < pq[j].Weight()
 }
 
 func (pq PriorityQueue) Swap(i, j int) {
@@ -14,8 +19,7 @@ func (pq PriorityQueue) Swap(i, j int) {
 }
 
 func (pq *PriorityQueue) Push(x any) {
-	item := x.(*HuffmanTree)
-	*pq = append(*pq, item)
+	*pq = append(*pq, x.(*HuffmanTree))
 }
 
 func (pq *PriorityQueue) Pop() any {
@@ -27,15 +31,69 @@ func (pq *PriorityQueue) Pop() any {
 	return item
 }
 
-func BuildHuffmanTree(characterCounts map[rune]int) []*HuffmanTree {
-	huffmanTree := []*HuffmanTree{}
-	for character,count := range characterCounts {
-		huffmanTree = append(huffmanTree, &HuffmanTree{
+func buildPriorityQueue(characterCounts map[rune]int) *PriorityQueue {
+	huffmanTree := make(PriorityQueue, len(characterCounts))
+	fmt.Println("Total Characters found: ", len(characterCounts))
+	i := 0
+	for character, count := range characterCounts {
+		//fmt.Printf("Character = %c, weight =  %d \n", character, count)
+		huffmanTree[i] = &HuffmanTree{
 			root: HuffmanLeafNode{
 				element: character,
 				weight: count,
 			},
-		})
+		}
+		i++
 	}
-	return huffmanTree
+	return &huffmanTree
+}
+
+func BuildHuffmanCodingTree(characterCounts map[rune]int)map[rune]string {
+	priorityQueue := buildPriorityQueue(characterCounts)
+	heap.Init(priorityQueue)
+
+	for priorityQueue.Len() > 1 {
+		first := heap.Pop(priorityQueue).(*HuffmanTree)
+		second := heap.Pop(priorityQueue).(*HuffmanTree)
+		new := &HuffmanTree{
+			root: HuffmanInternalNode{
+				left: first.Root(),
+				right: second.Root(),
+				weight: first.Weight() + second.Weight(),
+			},
+		}
+		priorityQueue.Push(new)
+	}
+	root := heap.Pop(priorityQueue).(*HuffmanTree)
+
+	characterCodes := traverseTree(root)
+	return characterCodes
+}
+
+func preorderTraversal(root *HuffmanNode, codeArray *[]rune, characterCodes *map[rune]string) {
+	if root == nil {
+		return 
+	}
+	if (*root).IsLeaf() {
+		leaf := (*root).(HuffmanLeafNode)
+		(*characterCodes)[leaf.element] = string(*codeArray)
+		//fmt.Printf("leaf node %s, %s \n", strconv.QuoteRune(leaf.element), string(*codeArray))
+	} else {
+		internalNode := (*root).(HuffmanInternalNode)
+		leftArray := make([]rune, len(*codeArray) + 1)
+		copy(leftArray, *codeArray)
+		leftArray[len(*codeArray)] = '0'
+		rightArray := make([]rune, len(*codeArray) + 1)
+		copy(rightArray, *codeArray)
+		rightArray[len(*codeArray)] = '1'
+		preorderTraversal(&internalNode.left, &leftArray, characterCodes)
+		preorderTraversal(&internalNode.right, &rightArray, characterCodes)
+	}
+}
+
+func traverseTree(huffmanTree *HuffmanTree) map[rune]string {
+	characterCodes := make(map[rune]string)
+	codeArray := []rune{}
+	preorderTraversal(&huffmanTree.root, &codeArray, &characterCodes)
+	return characterCodes
 }
