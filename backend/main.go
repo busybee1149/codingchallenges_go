@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	_ "net/http"
 
@@ -8,6 +9,9 @@ import (
 )
 
 func main() {
+	portNumber := flag.String("port", "8080", "Enter a port number")
+	flag.Parse()
+
 	router := gin.Default()
 	router.GET("/", func(c *gin.Context) {
 		fmt.Println("Received request from ", c.Request.URL.RequestURI())
@@ -19,6 +23,6 @@ func main() {
 		fmt.Println("Replied with a hello message")
 
 	})
-	router.Run(":8080") // listen and serve on 0.0.0.0:8080
+	router.Run(fmt.Sprintf(":%s", *portNumber)) // listen and serve on 0.0.0.0:8080
 }
 

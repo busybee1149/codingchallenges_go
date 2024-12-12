@@ -8,8 +8,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+
 func main() {
 	router := gin.Default()
+	backends := []string{
+		"http://localhost:8080",
+		"http://localhost:8081",
+		"http://localhost:8082",
+	}
+	var serverSelected = 0
 	router.GET("/", func(contextCopy *gin.Context) {
 		responseChannel := make(chan string)
 		fmt.Println("Received request from ", contextCopy.Request.URL.RequestURI())
@@ -17,17 +24,19 @@ func main() {
 		fmt.Println("Host: ", contextCopy.Request.URL.Hostname())
 		fmt.Println("User Agent: ", contextCopy.Request.UserAgent())
 		fmt.Println("Accept: ", contextCopy.GetHeader("Accept"))
-		go callBackend(responseChannel)
+		fmt.Println("Calling backend ", serverSelected)
+		go callBackend(backends[serverSelected], responseChannel)
 		contextCopy.String(200, <- responseChannel)
 		defer close(responseChannel)
+		serverSelected = (serverSelected + 1) % len(backends)
 	})
 	router.Run(":80") // listen and serve on 0.0.0.0:80
 }
 
-func callBackend(responseChannel chan string) {
+func callBackend(backendUrl string, responseChannel chan string) {
 	backendClient := &http.Client{}
 
-	response, err := backendClient.Get("http://localhost:8080")
+	response, err := backendClient.Get(backendUrl)
 	if err != nil {
 		fmt.Println("Issue while calling Backend")
 	}
