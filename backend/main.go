@@ -21,7 +21,10 @@ func main() {
 		fmt.Println("Accept: ", c.GetHeader("Accept"))
 		c.String(200, "Hello From Backend Server")
 		fmt.Println("Replied with a hello message")
+	})
 
+	router.GET("/healthcheck", func(ctx *gin.Context) {
+		ctx.String(200, "Healthy")
 	})
 	router.Run(fmt.Sprintf(":%s", *portNumber)) // listen and serve on 0.0.0.0:8080
 }
