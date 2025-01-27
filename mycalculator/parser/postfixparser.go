@@ -2,7 +2,6 @@ package parser
 
 import "unicode"
 
-
 type Stack[T any] struct {
 	items []T
 }
@@ -17,19 +16,19 @@ func (s *Stack[T]) Length() int {
 
 func (s *Stack[T]) Pop() T {
 	stackLength := s.Length()
-	var item T 
+	var item T
 	if stackLength > 0 {
-		item = s.items[stackLength - 1]
+		item = s.items[stackLength-1]
 	}
-	s.items = s.items[:stackLength - 1]
+	s.items = s.items[:stackLength-1]
 	return item
 }
 
 func (s *Stack[T]) Top() T {
 	stackLength := s.Length()
-	var item T 
+	var item T
 	if stackLength > 0 {
-		item = s.items[stackLength - 1]
+		item = s.items[stackLength-1]
 	}
 	return item
 }
@@ -38,15 +37,13 @@ func newStack[T any]() *Stack[T] {
 	return &Stack[T]{}
 }
 
-
-
 var operatorPriority = map[rune]int{
 	'*': 1,
 	'/': 1,
 	'%': 1,
 	'+': 2,
 	'-': 2,
-};
+}
 
 func InfixToPostfix(tokens string) string {
 	var output []rune
@@ -62,7 +59,7 @@ func InfixToPostfix(tokens string) string {
 			stack.Push(rune(charAtIndex))
 		} else if charAtIndex == ')' {
 			topOfStack := stack.Pop()
-			for ok := true; ok ; ok = (topOfStack != '(') {
+			for ok := true; ok; ok = (topOfStack != '(') {
 				output = append(output, topOfStack)
 				topOfStack = stack.Pop()
 			}
@@ -80,7 +77,6 @@ func InfixToPostfix(tokens string) string {
 			}
 		}
 	}
-
 
 	for stack.Length() > 0 {
 		lastCharacter := stack.Pop()

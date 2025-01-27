@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"parser"
 )
 
 
@@ -23,6 +24,7 @@ func main() {
 	}
 
 	sanitizedInput := sanitizeInput(arguments[0])
-	fmt.Println(sanitizedInput)
+	postfixExpression := parser.InfixToPostfix(sanitizedInput)
+	fmt.Println(postfixExpression)
 
 }
