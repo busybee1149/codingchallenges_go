@@ -7,8 +7,8 @@ import (
 
 
 func TestInfixToPostfixSimpleInput(t *testing.T) {
-	tokens := "(1 * 2) - (4 / 3)"
-	expected := "12*43/-"
+	tokens := "(10 * 23) - (41 / 3)"
+	expected := "10,23,*,41,3,/,-,"
 	result := InfixToPostfix(tokens)
 	if result != expected {
 		t.Fatalf("expected %v, actual %v", expected, result)

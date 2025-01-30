@@ -1,6 +1,10 @@
 package parser
 
-import "unicode"
+import (
+	"strconv"
+	"strings"
+	"unicode"
+)
 
 type Stack[T any] struct {
 	items []T
@@ -45,42 +49,61 @@ var operatorPriority = map[rune]int{
 	'-': 2,
 }
 
+func nextNumber(expression string, startIndex int) (int, int) {
+	for ; startIndex < len(expression) && !(expression[startIndex] >= '0' && expression[startIndex] <= '9'); startIndex++ {}
+
+	x := 0
+	for ; startIndex < len(expression) && (expression[startIndex] >= '0' && expression[startIndex] <= '9'); startIndex++ {
+		x = x * 10 + int(expression[startIndex] - '0')
+	}
+	return x, startIndex
+}
+
 func InfixToPostfix(tokens string) string {
-	var output []rune
+	var output strings.Builder
 	stack := newStack[rune]()
 
 	tokensLength := len(tokens)
 
-	for index := 0; index < tokensLength; index++ {
+	for index := 0; index < tokensLength;  {
 		charAtIndex := tokens[index]
 		if unicode.IsDigit(rune(charAtIndex)) {
-			output = append(output, rune(charAtIndex))
-		} else if charAtIndex == '(' {
-			stack.Push(rune(charAtIndex))
-		} else if charAtIndex == ')' {
-			topOfStack := stack.Pop()
-			for ok := true; ok; ok = (topOfStack != '(') {
-				output = append(output, topOfStack)
-				topOfStack = stack.Pop()
-			}
+			number, nextIndex := nextNumber(tokens, index)
+			output.WriteString(strconv.Itoa(number))
+			output.WriteRune(',')
+			index = nextIndex
 		} else {
-			characterPriority, ok := operatorPriority[rune(charAtIndex)]
-			if ok {
-				topOfStack := stack.Top()
-				topOfStackPriority, ok := operatorPriority[topOfStack]
-				if ok && topOfStackPriority <= characterPriority {
-					output = append(output, topOfStack)
-					stack.Pop()
-				} else {
-					stack.Push(rune(charAtIndex))
+			 if charAtIndex == '(' {
+				stack.Push(rune(charAtIndex))
+			 } else if charAtIndex == ')' {
+				topOfStack := stack.Pop()
+				for ok := true; ok; ok = (topOfStack != '(') {
+					output.WriteRune(topOfStack)
+					output.WriteRune(',')
+					topOfStack = stack.Pop()
+				}
+			} else {
+				characterPriority, ok := operatorPriority[rune(charAtIndex)]
+				if ok {
+					topOfStack := stack.Top()
+					topOfStackPriority, ok := operatorPriority[topOfStack]
+					if ok && topOfStackPriority <= characterPriority {
+						output.WriteRune(topOfStack)
+						output.WriteRune(',')
+						stack.Pop()
+					} else {
+						stack.Push(rune(charAtIndex))
+					}
 				}
 			}
+			index++
 		}
 	}
 
 	for stack.Length() > 0 {
 		lastCharacter := stack.Pop()
-		output = append(output, lastCharacter)
+		output.WriteRune(lastCharacter)
+		output.WriteRune(',')
 	}
-	return string(output)
+	return output.String()
 }
