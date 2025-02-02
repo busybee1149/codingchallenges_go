@@ -86,8 +86,7 @@ func InfixToPostfix(tokens string) string {
 				characterPriority, ok := operatorPriority[rune(charAtIndex)]
 				if ok {
 					topOfStack := stack.Top()
-					topOfStackPriority, ok := operatorPriority[topOfStack]
-					if ok && topOfStackPriority <= characterPriority {
+					if topOfStackPriority, ok := operatorPriority[topOfStack]; ok && topOfStackPriority <= characterPriority {
 						output.WriteRune(topOfStack)
 						output.WriteRune(',')
 						stack.Pop()
