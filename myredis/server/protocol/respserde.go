@@ -17,23 +17,27 @@ const (
 
 const SEPARATOR string = "\r\n"
 
+var (
+	NULL_BULK_STRING = BulkString{length: 0, content: "-1", prefix: BULK_STRING}
+)
+
 type Serializable interface {
 	Serialize() string
 }
 type Integer struct {
-	Value int
+	value int
 	prefix rune
 }
 func NewInteger(number int) Integer {
-	return Integer{prefix: INTEGER, Value: number}
+	return Integer{prefix: INTEGER, value: number}
 }
 type String struct {
-	Value string
+	value string
 	prefix rune
 }
 
 func NewString(message string) String {
-	return String{ Value: message, prefix: SIMPLE_STRING }
+	return String{ value: message, prefix: SIMPLE_STRING }
 }
 type Array struct {
 	Elements []interface{}
@@ -61,6 +65,10 @@ func NewBulkString(message string) BulkString {
 	return BulkString{ length: len(message), content: message, prefix: BULK_STRING}
 }
 
+func (bulkString *BulkString) ContentString() string {
+	return bulkString.content
+}
+
 type ErrorString struct {
 	message string
 	prefix rune
@@ -71,18 +79,22 @@ func NewError(message string) ErrorString {
 }
 
 func (str String) Serialize() string {
-	return fmt.Sprintf("%c%s%s", str.prefix, str.Value, SEPARATOR)
+	return fmt.Sprintf("%c%s%s", str.prefix, str.value, SEPARATOR)
 }
 
 func (err ErrorString) Serialize() string {
 	return fmt.Sprintf("%c%s%s", err.prefix, err.message, SEPARATOR)
 }
 func (integer Integer) Serialize() string {
-	return fmt.Sprintf("%c%s%s", integer.prefix, strconv.Itoa(integer.Value), SEPARATOR)
+	return fmt.Sprintf("%c%s%s", integer.prefix, strconv.Itoa(integer.value), SEPARATOR)
 }
 
 func (bulkstring BulkString) Serialize() string {
-	return fmt.Sprintf("%c%s%s%s%s", bulkstring.prefix, strconv.Itoa(bulkstring.length), SEPARATOR, bulkstring.content, SEPARATOR)
+	if bulkstring.length > 0 { 
+		return fmt.Sprintf("%c%s%s%s%s", bulkstring.prefix, strconv.Itoa(bulkstring.length), SEPARATOR, bulkstring.content, SEPARATOR)
+	} else {
+		return fmt.Sprintf("%c%s%s", bulkstring.prefix, bulkstring.content, SEPARATOR)
+	}
 }
 
 func (array Array) Serialize() string {
@@ -114,10 +126,7 @@ func (array Array) Serialize() string {
 }
 
 
-const (
-	NULL_BULK_STRING = iota 
-	NULL_ARRAY
-)
+
 
 func DeserializeInteger(str string) (Integer, error) {
 	number, err := strconv.Atoi(str[1:])
@@ -219,7 +228,7 @@ func deserializeArray(str string) (Array, error) {
 }
 
 func Deserialize(message string) (Array, error) {
-	fmt.Println("trying to deserialize", message)
+	//fmt.Println("trying to deserialize", message)
 	return deserializeArray(message)
 }
 
